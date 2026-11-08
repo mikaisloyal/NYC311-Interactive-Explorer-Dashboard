@@ -4,7 +4,7 @@ A MySQL database and dashboard for finding patterns in city complaint data from 
 
 ## Data (frozen copy)
 
-- Source: NYC Open Data, 311 Service Requests, filtered to Created Date Jan 01, 2025 to Dec 31, 2025
+- Source: NYC Open Data, 311 Service Requests, filtered to Created Date from Jan 01, 2025 to Dec 31, 2025
 - Downloaded: 2026-11-07
 - Rows: 3,654,957 (without header)
 - Columns: 44
@@ -17,34 +17,72 @@ The portal data changes daily, so everyone uses this one frozen copy.
 
 ## How to get the data (Mac)
 
-1. Make a folder outside the repo: `mkdir -p ~/311-data && cd ~/311-data`
-2. From the repo's **Releases** page, download both files into that folder:
-   `311_requests_2025_v1.csv.gz` and `311_requests_2025_v1.csv.gz.sha256`
-   (you must be signed in to GitHub and added as a collaborator)
-3. Verify the download. It must print `OK`:
-   ```
-   shasum -a 256 -c 311_requests_2025_v1.csv.gz.sha256
-   ```
-4. Unzip, keeping the .gz:
-   ```
-   gunzip -k 311_requests_2025_v1.csv.gz
-   ```
-5. Check the contents (change the path to where you cloned this repo):
-   ```
-   python3 /path/to/repo/scripts/check_csv.py 311_requests_2025_v1.csv
-   ```
-   Expected output:
-   ```
-   columns: 44
-   rows (without header): 3654957
-   first created: 2025-01-01 00:00:12
-   last created: 2025-12-31 23:44:49
-   rows with unreadable created date: 0
-   ```
+Run these in Terminal.
 
-Windows: for step 3, run `certutil -hashfile 311_requests_2025_v1.csv.gz SHA256` and compare the result with the SHA-256 above. For step 4, use 7-Zip. Use `python` instead of `python3`.
+### 1. Get the repo
 
-You need roughly 10 GB of free disk space (rough estimate: the .gz + the 2.5 GB CSV + the MySQL copy).
+```
+git clone https://github.com/mikaisloyal/YOUR-REPO-NAME.git ~/nyc311-explorer
+```
+
+If your Mac asks to install developer tools, click Install, wait, then run the command again.
+No git? On the repo page click **Code, then Download ZIP**, and unzip it to `~/nyc311-explorer`.
+
+### 2. Download the data files
+
+```
+mkdir -p ~/311-data
+```
+
+On the repo page, open **Releases** and download both files into the `311-data` folder in your home folder:
+`311_requests_2025_v1.csv.gz` and `311_requests_2025_v1.csv.gz.sha256`
+(anyone can download them, no sign-in needed).
+
+### 3. Verify the download
+
+```
+cd ~/311-data
+shasum -a 256 -c 311_requests_2025_v1.csv.gz.sha256
+```
+
+It must print `311_requests_2025_v1.csv.gz: OK`. If not, download the files again.
+
+### 4. Unzip (keeps the .gz)
+
+```
+gunzip -k 311_requests_2025_v1.csv.gz
+```
+
+### 5. Check the contents with `check_csv.py`
+
+The script reads the CSV and prints its row count and date range, so you can confirm you have the same data as everyone else.
+
+```
+python3 ~/nyc311-explorer/scripts/check_csv.py ~/311-data/311_requests_2025_v1.csv
+```
+
+It takes a few minutes and prints nothing until it finishes. Expected output:
+
+```
+columns: 44
+rows (without header): 3654957
+first created: 2025-01-01 00:00:12
+last created: 2025-12-31 23:44:49
+rows with unreadable created date: 0
+```
+
+If your numbers differ, stop and tell the team before loading anything.
+
+### Windows
+
+- Step 3: run `certutil -hashfile 311_requests_2025_v1.csv.gz SHA256` and compare the result with the SHA-256 above.
+- Step 4: unzip with 7-Zip.
+- Step 5: use `python` instead of `python3`, and Windows-style paths.
+
+### Disk space
+
+The unzipped CSV is 2.5 GB, and MySQL needs additional space for the loaded table. After loading, you can delete the unzipped
+.csv and keep the .gz.
 
 ## Rules
 
@@ -54,4 +92,4 @@ You need roughly 10 GB of free disk space (rough estimate: the .gz + the 2.5 GB 
 
 ## Repo contents
 
-- `scripts/check_csv.py`: checks row count and date range of the CSV
+- `scripts/check_csv.py`: prints the row count and the first and last Created Date of the CSV (usage: step 5 above)
